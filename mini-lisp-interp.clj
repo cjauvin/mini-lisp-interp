@@ -1,3 +1,11 @@
+;;;; mini-lisp-interp.clj
+;;;;
+;;;; A Clojure interpreter for a minimal Lisp.
+;;;;
+;;;; Christian Jauvin <cjauvin@gmail.com>
+;;;; March 2010
+
+;; Requires clojure-contrib >= 1.2
 (require '[clojure.contrib.string :as str])
 
 (defn strip-comments [s]
@@ -9,7 +17,7 @@
                (str/partition #"\(| |\)|\"[^\"]*\"" 
                               (strip-comments s)))))
 
-; Try to cast string first as integer, then as float
+;; Try to cast string first as integer, then as float
 (defn parse-num [s]
   (try (Integer/parseInt s)
        (catch NumberFormatException nfe 
@@ -28,9 +36,9 @@
         (= (nth tokens i) ")") (recur (inc i) nop (inc ncp))                  
         :default (recur (inc i) nop ncp)))))
           
-; Assumes an implicit first paren, then finds enclosing group for it
-; For instance: a ( b c ( d e ) ) f ) g (
-; would yield:  a ( b c ( d e ) ) f )
+;; Assumes an implicit first paren, then finds enclosing group for it
+;; For instance: a ( b c ( d e ) ) f ) g (
+;; would yield:  a ( b c ( d e ) ) f )
 (defn find-balanced-group [tokens]
   (loop [nop 1, i 0, acc ()] ; nop: nb. of opening parens
     (if (zero? nop)
@@ -111,10 +119,10 @@
              (recur (inc i) (concat node (list token))))))))
   
                                 
-; symbol-table: { var-symbol -> ["var", var-node],
-;                 fn-symbol  -> ["function", params, fn-nodes] }, 
-;                                 where fn-nodes is a list of function 
-;                                 expressions, or "statements"
+;; symbol-table: { var-symbol -> ["var", var-node],
+;;                 fn-symbol  -> ["function", params, fn-nodes] }, 
+;;                                 where fn-nodes is a list of function 
+;;                                 expressions, or "statements"
 (defn extract-symbol-table-debug [node]
   (loop [i 0, symbol-table {}]
     (if (>= i (count node))
@@ -145,10 +153,10 @@
             (recur (inc i) (merge symbol-table (extract-symbol-table-debug elem)))))))))
 
 
-; symbol-table: { var-symbol -> ["var" var-node],
-;                 fn-symbol  -> ["function" params fn-nodes] }, 
-;                                 where fn-nodes is a list of function 
-;                                 expressions, or "statements"
+;; symbol-table: { var-symbol -> ["var" var-node],
+;;                 fn-symbol  -> ["function" params fn-nodes] }, 
+;;                                 where fn-nodes is a list of function 
+;;                                 expressions, or "statements"
 (defn extract-symbol-table [node]
   (loop [i 0, symbol-table {}]
     (if (>= i (count node))
@@ -173,10 +181,10 @@
               (recur (inc i) symbol-table))
           (recur (inc i) (merge symbol-table (extract-symbol-table elem))))))))
 
-; function-node: ((..p1.. (..p2..)..) (..))
-; param-map: {p1 (..), p2 (..), ..}
-; Returns a function-node in which all instances of params found in 
-; param-map have been replaced by their actual values
+;; function-node: ((..p1.. (..p2..)..) (..))
+;; param-map: {p1 (..), p2 (..), ..}
+;; Returns a function-node in which all instances of params found in 
+;; param-map have been replaced by their actual values
 (defn get-function-instance [fn-nodes param-map]
   (loop [i 0, fn-instance ()]
     (if (>= i (count fn-nodes))
@@ -190,9 +198,9 @@
 
 (declare execute-node)
 
-; function: symbol
-; params: list
-; symbol-table: map
+;; function: symbol
+;; params: list
+;; symbol-table: map
 (defn execute-function-debug [function params symbol-table]
   (cond 
     (contains? symbol-table function) ; user-defined function
@@ -260,9 +268,9 @@
         ())
     ))
 
-; function: symbol
-; params: list
-; symbol-table: map
+;; function: symbol
+;; params: list
+;; symbol-table: map
 (defn execute-function [function params symbol-table]
   (cond 
     (contains? symbol-table function) ; user-defined function
@@ -344,4 +352,3 @@
             (execute-node node symbol-table)))))))
 
 (execute-program (slurp (first *command-line-args*)))
-
