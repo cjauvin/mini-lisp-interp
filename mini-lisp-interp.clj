@@ -4,6 +4,9 @@
 ;;;;
 ;;;; Christian Jauvin <cjauvin@gmail.com>
 ;;;; March 2010
+;;;;
+;;;; Usage:
+;;;; clj mini-lisp-interp.clj <mini-lisp file>
 
 ;; Requires clojure-contrib >= 1.2
 (require '[clojure.contrib.string :as str])
