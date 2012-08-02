@@ -1,7 +1,7 @@
-This is a Clojure interpreter for a very minimal Lisp (just a learning project).
+This is a Clojure interpreter for a very minimal Lisp (just a learning project really).
 
 See: http://cjauvin.blogspot.com/2010/03/clojure.html
 
 Usage: clj mini-lisp-interp.clj <mini-lisp file>
 
-Requires: clojure-contrib >= 1.2
+Probably requires: Clojure >= 1.3
