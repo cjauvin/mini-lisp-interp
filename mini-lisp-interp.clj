@@ -1,27 +1,52 @@
 ;;;; mini-lisp-interp.clj
 ;;;;
-;;;; A Clojure interpreter for a minimal Lisp
-;;;; (just for learning).
-;;;;
+;;;; A Clojure interpreter for a minimal Lisp (just a learning project really)
+;;;; 
 ;;;; Christian Jauvin <cjauvin@gmail.com>
 ;;;; March 2010
 ;;;;
 ;;;; Usage:
 ;;;; clj mini-lisp-interp.clj <mini-lisp file>
 ;;;;
-;;;; Requires clojure-contrib >= 1.2
+;;;; Update (2012-08-02): to make it work with Clojure >= 1.3, I had to add the "partition" function,
+;;;;                      taken from the old clojure-contrib lib (https://github.com/richhickey/clojure-contrib),
+;;;;                      which doesn't seem to have been ported to clojure.string. I also had to rename it to
+;;;;                      "str-partition" because of a name clash with an existing core function. Caveat: I don't
+;;;;                      know if it will work with Clojure <= 1.2 anymore (I guess not).
 
-(require '[clojure.contrib.string :as str])
+(require '[clojure.string :as str])
+
+;; This function was taken (and renamed) from: https://github.com/richhickey/clojure-contrib
+(defn str-partition
+  "Splits the string into a lazy sequence of substrings, alternating
+  between substrings that match the patthern and the substrings
+  between the matches.  The sequence always starts with the substring
+  before the first match, or an empty string if the beginning of the
+  string matches.
+
+  For example: (partition #\"[a-z]+\" \"abc123def\")
+  returns: (\"\" \"abc\" \"123\" \"def\")"
+  [#^java.util.regex.Pattern re #^String s]
+  (let [m (re-matcher re s)]
+    ((fn step [prevend]
+       (lazy-seq
+        (if (.find m)
+          (cons (.subSequence s prevend (.start m))
+                (cons (re-groups m)
+                      (step (+ (.start m) (count (.group m))))))
+          (when (< prevend (.length s))
+            (list (.subSequence s prevend (.length s)))))))
+     0)))
 
 (defn strip-comments [s]
-  (str/join "" (str/split #";.*\n?" s)))
+  (str/join "" (str/split s #";.*\n?")))
 
 (defn tokenize [s]
   (filter #(not (= "" %)) 
           (map #(str/trim %) 
-               (str/partition #"\(| |\)|\"[^\"]*\"" 
-                              (strip-comments s)))))
-
+               (str-partition #"\(| |\)|\"[^\"]*\""
+                              (strip-comments s)))))                              
+                          
 ;; Try to cast string first as integer, then as float
 (defn parse-num [s]
   (try (Integer/parseInt s)
@@ -236,7 +261,7 @@
       (do
 ;        (println "exec fn =" function ", params ="  params)
         (if (= (:dtype (first params)) java.lang.String)
-          (println (str/replace-str "\"" "" (first params))) ; remove enclosing doublequotes
+          (println (str/replace (first params) "\"" "")) ; remove enclosing doublequotes
           (println (first params))))
     (= function "list")
       (do
@@ -292,7 +317,7 @@
       (apply - params)
     (= function "print")
       (if (= (:dtype (first params)) java.lang.String)
-          (println (str/replace-str "\"" "" (first params))) ; remove enclosing doublequotes
+          (println (str/replace (first params) "\"" "")) ; remove enclosing doublequotes
           (println (first params)))
     (= function "list")
       params
