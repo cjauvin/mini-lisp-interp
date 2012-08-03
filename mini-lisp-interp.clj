@@ -260,7 +260,7 @@
     (= function "print")
       (do
 ;        (println "exec fn =" function ", params ="  params)
-        (if (= (:dtype (first params)) java.lang.String)
+        (if (= (type (first params)) java.lang.String)
           (println (str/replace (first params) "\"" "")) ; remove enclosing doublequotes
           (println (first params))))
     (= function "list")
@@ -316,7 +316,7 @@
     (= function "-")
       (apply - params)
     (= function "print")
-      (if (= (:dtype (first params)) java.lang.String)
+      (if (= (type (first params)) java.lang.String)
           (println (str/replace (first params) "\"" "")) ; remove enclosing doublequotes
           (println (first params)))
     (= function "list")
@@ -381,4 +381,5 @@
           (doseq [node syntax-tree]
             (execute-node node symbol-table)))))))
 
+(assert (== (count *command-line-args*) 1) "\n\nusage: clj mini-lisp-interp.clj <mini-lisp-file>\n")
 (execute-program (slurp (first *command-line-args*)))
